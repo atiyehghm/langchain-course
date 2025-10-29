@@ -1,40 +1,48 @@
 import os
-import json
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-
-from langsmith import Client
 from langchain.agents import create_agent
+from langchain_core.runnables import RunnableLambda
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
-
+from schemas import AgentResponse
 
 tools = [TavilySearch()]
-
 llm = ChatOpenAI(
-    api_key=os.getenv("METIS_API_KEY"),  
-    base_url="https://api.metisai.ir/openai/v1",  
+    api_key=os.getenv("METIS_API_KEY"),
+    base_url="https://api.metisai.ir/openai/v1",
     model="gpt-4o-mini",
-    temperature=0.0
+    temperature=0.0,
 )
 
-client = Client(api_key=os.getenv("LANGSMITH_API_KEY"))
-react_prompt = client.pull_prompt("hwchase17/react")
 
-graph = create_agent(model=llm, tools=tools, system_prompt=getattr(react_prompt, "template", None))
+agent = create_agent(
+    model=llm,
+    tools=tools,
+    response_format=AgentResponse,
+)
+
+output_extractor = RunnableLambda(lambda x: x.get("structured_response", None))
+chain = agent | output_extractor
 
 
 def main():
-    result = graph.invoke(
+    result = chain.invoke(
         {
             "messages": [
-                {"role": "user", "content": "Search for 3 job postings for an ai engineer using langchain in the bay area on linkedin and list their detils."}
+                {
+                    "role": "user",
+                    "content": "search for 3 job postings for an ai engineer using langchain in the bay area on linkedin and list their details",
+                }
             ]
         }
     )
-    print(result["results"])
+    print(result)
 
-if __name__== "__main__":
+
+if __name__ == "__main__":
     main()
+

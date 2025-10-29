@@ -1,9 +1,10 @@
-import os
-from langchain_groq import ChatGroq
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import JsonOutputParser
 import json
+import os
+
 from dotenv import load_dotenv
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_groq import ChatGroq
 
 load_dotenv()
 
@@ -11,41 +12,46 @@ load_dotenv()
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
     model_name="llama-3.3-70b-versatile",
-    temperature=0.7
+    temperature=0.7,
 )
 
 # Define the expected JSON structure
-parser = JsonOutputParser(pydantic_object={
-    "type": "object",
-    "properties": {
-        "name": {"type": "string"},
-        "price": {"type": "number"},
-        "features": {
-            "type": "array",
-            "items": {"type": "string"}
-        }
+parser = JsonOutputParser(
+    pydantic_object={
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "price": {"type": "number"},
+            "features": {"type": "array", "items": {"type": "string"}},
+        },
     }
-})
+)
 
 # Create a simple prompt
-prompt = ChatPromptTemplate.from_messages([
-    ("system", """Extract product details into JSON with this structure:
+prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            """Extract product details into JSON with this structure:
         {{
             "name": "product name here",
             "price": number_here_without_currency_symbol,
             "features": ["feature1", "feature2", "feature3"]
-        }}"""),
-    ("user", "{input}")
-])
+        }}""",
+        ),
+        ("user", "{input}"),
+    ]
+)
 
 # Create the chain that guarantees JSON output
 chain = prompt | llm | parser
+
 
 def parse_product(description: str) -> dict:
     result = chain.invoke({"input": description})
     print(json.dumps(result, indent=2))
 
-        
+
 # Example usage
 description = """The Kees Van Der Westen Speedster is a high-end, single-group espresso machine known for its precision, performance, 
 and industrial design. Handcrafted in the Netherlands, it features dual boilers for brewing and steaming, PID temperature control for 
@@ -54,4 +60,3 @@ customizable aesthetics, exceptional thermal stability, and intuitive operation 
 depending on the retailer and customization options."""
 
 parse_product(description)
-

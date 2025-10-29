@@ -1,10 +1,10 @@
-from langchain_openai import ChatOpenAI
 import os
-from dotenv import load_dotenv
-from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_ollama import ChatOllama
 
+from dotenv import load_dotenv
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
@@ -22,28 +22,27 @@ Musk's political activities, views, and statements have made him a polarizing fi
 
 if __name__ == "__main__":
 
-    summary_template=f"""
+    summary_template = f"""
     given the information {information} about a person I want you to create:
     1. A short summary
     2. Two interesting facts about them
     """
 
     summary_prompt_template = PromptTemplate(
-        input_variables=["information"], template=summary_template)
+        input_variables=["information"], template=summary_template
+    )
 
     # llm = ChatOpenAI(
-    #     api_key=os.getenv("METIS_API_KEY"),  
-    #     base_url="https://api.metisai.ir/openai/v1",  
+    #     api_key=os.getenv("METIS_API_KEY"),
+    #     base_url="https://api.metisai.ir/openai/v1",
     #     model="gpt-4o-mini",
     #     temperature=0.0
     # )
 
     llm = ChatOllama(model="gemma3:270m", temperature=0.0)
 
-
     chain = summary_prompt_template | llm | StrOutputParser()
 
-
     # Now you can use it like any LangChain LLM
-    response = chain.invoke(input={'information': information})
+    response = chain.invoke(input={"information": information})
     print(response)
