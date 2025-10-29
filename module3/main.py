@@ -1,11 +1,12 @@
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-from langchain.agents.react.base import REACT_PROMPT
-from langchain.agents import AgentExecutor, create_react_agent
+from langsmith import Client
+from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 
@@ -19,21 +20,21 @@ llm = ChatOpenAI(
     temperature=0.0
 )
 
-react_prompt = REACT_PROMPT
+client = Client(api_key=os.getenv("LANGSMITH_API_KEY"))
+react_prompt = client.pull_prompt("hwchase17/react")
 
-agent = create_react_agent(llm=llm, tools=tools, prompt=react_prompt)
-
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-
-chain = agent_executor
+graph = create_agent(model=llm, tools=tools, system_prompt=getattr(react_prompt, "template", None))
 
 
 def main():
-    result =  chain.invoke(
-        input={
-            "input": "Search for 3 job postings for an ai engineer using langchain in the bay area on linkedin and list their detils."
+    result = graph.invoke(
+        {
+            "messages": [
+                {"role": "user", "content": "Search for 3 job postings for an ai engineer using langchain in the bay area on linkedin and list their detils."}
+            ]
         }
     )
+    print(result["results"])
 
 if __name__== "__main__":
     main()
