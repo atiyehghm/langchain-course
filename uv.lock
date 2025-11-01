@@ -573,6 +573,7 @@ dependencies = [
     { name = "langchain-ollama" },
     { name = "langchain-openai" },
     { name = "langchain-tavily" },
+    { name = "langchain-text-splitters" },
     { name = "langchainhub" },
     { name = "python-dotenv" },
 ]
@@ -588,6 +589,7 @@ requires-dist = [
     { name = "langchain-ollama", specifier = ">=1.0.0" },
     { name = "langchain-openai", specifier = ">=1.0.1" },
     { name = "langchain-tavily", specifier = ">=0.2.12" },
+    { name = "langchain-text-splitters", specifier = ">=1.0.0" },
     { name = "langchainhub", specifier = ">=0.1.21" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
 ]
